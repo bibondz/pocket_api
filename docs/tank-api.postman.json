@@ -1,0 +1,223 @@
+{
+    "collection": {
+        "info": {
+            "name": "Tank API",
+            "description": "Tank Management System API",
+            "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+        },
+        "item": [
+            {
+                "name": "System",
+                "item": [
+                    {
+                        "name": "Health",
+                        "request": {
+                            "method": "GET",
+                            "url": "https://api.irissar.com/app2/health"
+                        }
+                    },
+                    {
+                        "name": "Status",
+                        "request": {
+                            "method": "GET",
+                            "url": "https://api.irissar.com/app2/status"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Auth",
+                "item": [
+                    {
+                        "name": "Login",
+                        "request": {
+                            "method": "POST",
+                            "url": "https://api.irissar.com/api/collections/users/auth-with-password",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": {
+                                "mode": "raw",
+                                "raw": {
+                                    "identity": "admin@tank-api.test",
+                                    "password": "your_password"
+                                }
+                            },
+                            "description": "Login with email/password to get auth token"
+                        }
+                    },
+                    {
+                        "name": "Refresh Token",
+                        "request": {
+                            "method": "POST",
+                            "url": "https://api.irissar.com/api/collections/users/auth-refresh",
+                            "description": "Refresh authentication token"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Users",
+                "item": [
+                    {
+                        "name": "List Users",
+                        "request": {
+                            "method": "GET",
+                            "url": "https://api.irissar.com/app2/users",
+                            "description": "Get list of all users. Optional query params: ?role=admin&sort=-created"
+                        }
+                    },
+                    {
+                        "name": "Get User",
+                        "request": {
+                            "method": "GET",
+                            "url": "https://api.irissar.com/app2/users/{{userId}}",
+                            "description": "Get single user by ID"
+                        }
+                    },
+                    {
+                        "name": "Create User",
+                        "request": {
+                            "method": "POST",
+                            "url": "https://api.irissar.com/app2/users",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": {
+                                "mode": "raw",
+                                "raw": {
+                                    "email": "user@example.com",
+                                    "password": "SecurePass123!",
+                                    "name": "John Doe",
+                                    "role": "operator",
+                                    "department": "Operations",
+                                    "active": true
+                                }
+                            },
+                            "description": "Create new user with basic info"
+                        }
+                    },
+                    {
+                        "name": "Update User",
+                        "request": {
+                            "method": "PATCH",
+                            "url": "https://api.irissar.com/app2/users/{{userId}}",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": {
+                                "mode": "raw",
+                                "raw": {
+                                    "name": "John Smith",
+                                    "department": "Maintenance",
+                                    "active": true
+                                }
+                            },
+                            "description": "Update user information"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Tanks",
+                "item": [
+                    {
+                        "name": "List Tanks",
+                        "request": {
+                            "method": "GET",
+                            "url": "https://api.irissar.com/app2/tanks",
+                            "description": "Get list of all tanks. Optional query params: ?status=active&sort=-created"
+                        }
+                    },
+                    {
+                        "name": "Get Tank",
+                        "request": {
+                            "method": "GET",
+                            "url": "https://api.irissar.com/app2/tanks/{{tankId}}",
+                            "description": "Get single tank by ID"
+                        }
+                    },
+                    {
+                        "name": "Create Tank",
+                        "request": {
+                            "method": "POST",
+                            "url": "https://api.irissar.com/app2/tanks",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": {
+                                "mode": "raw",
+                                "raw": {
+                                    "name": "Tank A1",
+                                    "tank_id": "TANK001",
+                                    "description": "Main storage tank",
+                                    "type": "storage",
+                                    "capacity": 10000,
+                                    "unit": "liters",
+                                    "location": {
+                                        "building": "A",
+                                        "floor": "1",
+                                        "zone": "Storage"
+                                    }
+                                }
+                            },
+                            "description": "Create new tank with basic info"
+                        }
+                    },
+                    {
+                        "name": "Update Tank Status",
+                        "request": {
+                            "method": "PATCH",
+                            "url": "https://api.irissar.com/app2/tanks/{{tankId}}/status",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": {
+                                "mode": "raw",
+                                "raw": {
+                                    "status": "active"
+                                }
+                            },
+                            "description": "Update tank status (active, inactive, maintenance)"
+                        }
+                    },
+                    {
+                        "name": "Update Tank Level",
+                        "request": {
+                            "method": "PATCH",
+                            "url": "https://api.irissar.com/app2/tanks/{{tankId}}/percentage",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": {
+                                "mode": "raw",
+                                "raw": {
+                                    "percentage": 75
+                                }
+                            },
+                            "description": "Update tank level (0-100%)"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+} 

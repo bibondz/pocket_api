@@ -1,0 +1,882 @@
+{
+	"info": {
+		"name": "Tank API",
+		"description": "API documentation for Tank Management System",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5053",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login (System Admin)",
+					"request": {
+						"method": "POST",
+						"url": "{{baseUrl}}/api/collections/users/auth-with-password",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"identity": "support@irissar.com",
+								"password": "yDuJIKIX8oN45TD"
+							}
+						}
+					}
+				},
+				{
+					"name": "Login (Maintenance)",
+					"request": {
+						"method": "POST",
+						"url": "{{baseUrl}}/api/collections/users/auth-with-password",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": {
+								"identity": "bibond_z@hotmail.co.th",
+								"password": "Z6NqkaweTZjnxDr"
+							}
+						}
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"url": "{{baseUrl}}/api/collections/users/auth-refresh",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "User Management",
+					"item": [
+						{
+							"name": "Create User",
+							"request": {
+								"method": "POST",
+								"url": "{{baseUrl}}/admin/users",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": {
+										"email": "user@example.com",
+										"password": "password123",
+										"name": "Test User",
+										"role": "operator",
+										"department": "{{departmentId}}"
+									}
+								}
+							}
+						},
+						{
+							"name": "List Users",
+							"request": {
+								"method": "GET",
+								"url": "{{baseUrl}}/admin/users",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						},
+						{
+							"name": "Get User",
+							"request": {
+								"method": "GET",
+								"url": "{{baseUrl}}/admin/users/{{userId}}",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						},
+						{
+							"name": "Update User",
+							"request": {
+								"method": "PATCH",
+								"url": "{{baseUrl}}/admin/users/{{userId}}",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": {
+										"name": "Updated Name",
+										"role": "manager"
+									}
+								}
+							}
+						},
+						{
+							"name": "Delete User",
+							"request": {
+								"method": "DELETE",
+								"url": "{{baseUrl}}/admin/users/{{userId}}",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Department Management",
+					"item": [
+						{
+							"name": "Create Department",
+							"request": {
+								"method": "POST",
+								"url": "{{baseUrl}}/admin/departments",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": {
+										"name": "Test Department",
+										"description": "Test department description"
+									}
+								}
+							}
+						},
+						{
+							"name": "List Departments",
+							"request": {
+								"method": "GET",
+								"url": "{{baseUrl}}/admin/departments",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						},
+						{
+							"name": "Get Department",
+							"request": {
+								"method": "GET",
+								"url": "{{baseUrl}}/admin/departments/{{departmentId}}",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						},
+						{
+							"name": "Update Department",
+							"request": {
+								"method": "PATCH",
+								"url": "{{baseUrl}}/admin/departments/{{departmentId}}",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": {
+										"name": "Updated Department",
+										"description": "Updated description"
+									}
+								}
+							}
+						},
+						{
+							"name": "Delete Department",
+							"request": {
+								"method": "DELETE",
+								"url": "{{baseUrl}}/admin/departments/{{departmentId}}",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Tank Management",
+					"item": [
+						{
+							"name": "Create Tank",
+							"request": {
+								"method": "POST",
+								"url": "{{baseUrl}}/admin/tanks",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": {
+										"name": "Test Tank",
+										"tank_id": "TANK001",
+										"description": "Test tank description",
+										"capacity": 1000,
+										"percentage": 0
+									}
+								}
+							}
+						},
+						{
+							"name": "List Tanks",
+							"request": {
+								"method": "GET",
+								"url": "{{baseUrl}}/admin/tanks",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						},
+						{
+							"name": "Get Tank",
+							"request": {
+								"method": "GET",
+								"url": "{{baseUrl}}/admin/tanks/{{tankId}}",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						},
+						{
+							"name": "Update Tank",
+							"request": {
+								"method": "PATCH",
+								"url": "{{baseUrl}}/admin/tanks/{{tankId}}",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": {
+										"name": "Updated Tank",
+										"description": "Updated description"
+									}
+								}
+							}
+						},
+						{
+							"name": "Delete Tank",
+							"request": {
+								"method": "DELETE",
+								"url": "{{baseUrl}}/admin/tanks/{{tankId}}",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Department",
+			"item": [
+				{
+					"name": "Basic CRUD",
+					"item": [
+						{
+							"name": "Create Department",
+							"request": {
+								"method": "POST",
+								"url": "{{baseUrl}}/departments",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": {
+										"name": "Test Department",
+										"description": "Test department description"
+									}
+								}
+							}
+						},
+						{
+							"name": "List Departments",
+							"request": {
+								"method": "GET",
+								"url": "{{baseUrl}}/departments",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						},
+						{
+							"name": "Get Department",
+							"request": {
+								"method": "GET",
+								"url": "{{baseUrl}}/departments/{{departmentId}}",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						},
+						{
+							"name": "Update Department",
+							"request": {
+								"method": "PATCH",
+								"url": "{{baseUrl}}/departments/{{departmentId}}",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": {
+										"name": "Updated Department",
+										"description": "Updated description"
+									}
+								}
+							}
+						},
+						{
+							"name": "Delete Department",
+							"request": {
+								"method": "DELETE",
+								"url": "{{baseUrl}}/departments/{{departmentId}}",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Member Management",
+					"item": [
+						{
+							"name": "Add Member",
+							"request": {
+								"method": "POST",
+								"url": "{{baseUrl}}/departments/{{departmentId}}/members",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": {
+										"userId": "{{userId}}",
+										"role": "operator"
+									}
+								}
+							}
+						},
+						{
+							"name": "List Members",
+							"request": {
+								"method": "GET",
+								"url": "{{baseUrl}}/departments/{{departmentId}}/members",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						},
+						{
+							"name": "Update Member",
+							"request": {
+								"method": "PATCH",
+								"url": "{{baseUrl}}/departments/{{departmentId}}/members/{{userId}}",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": {
+										"role": "manager"
+									}
+								}
+							}
+						},
+						{
+							"name": "Remove Member",
+							"request": {
+								"method": "DELETE",
+								"url": "{{baseUrl}}/departments/{{departmentId}}/members/{{userId}}",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Tank Management",
+					"item": [
+						{
+							"name": "List Department Tanks",
+							"request": {
+								"method": "GET",
+								"url": "{{baseUrl}}/departments/{{departmentId}}/tanks",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						},
+						{
+							"name": "Add Tank",
+							"request": {
+								"method": "POST",
+								"url": "{{baseUrl}}/departments/{{departmentId}}/tanks/{{tankId}}",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						},
+						{
+							"name": "Remove Tank",
+							"request": {
+								"method": "DELETE",
+								"url": "{{baseUrl}}/departments/{{departmentId}}/tanks/{{tankId}}",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Tank Permissions",
+					"item": [
+						{
+							"name": "Grant Tank Access",
+							"request": {
+								"method": "POST",
+								"url": "{{baseUrl}}/departments/{{departmentId}}/tanks/{{tankId}}/permissions",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": {
+										"userId": "{{userId}}",
+										"permissions": {
+											"read": true,
+											"write": true
+										}
+									}
+								}
+							}
+						},
+						{
+							"name": "List Tank Permissions",
+							"request": {
+								"method": "GET",
+								"url": "{{baseUrl}}/departments/{{departmentId}}/tanks/{{tankId}}/permissions",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						},
+						{
+							"name": "Update Tank Permissions",
+							"request": {
+								"method": "PATCH",
+								"url": "{{baseUrl}}/departments/{{departmentId}}/tanks/{{tankId}}/permissions/{{userId}}",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": {
+										"permissions": {
+											"read": true,
+											"write": false
+										}
+									}
+								}
+							}
+						},
+						{
+							"name": "Revoke Tank Permissions",
+							"request": {
+								"method": "DELETE",
+								"url": "{{baseUrl}}/departments/{{departmentId}}/tanks/{{tankId}}/permissions/{{userId}}",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Tank",
+			"item": [
+				{
+					"name": "Basic CRUD",
+					"item": [
+						{
+							"name": "List Tanks",
+							"request": {
+								"method": "GET",
+								"url": "{{baseUrl}}/tanks",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						},
+						{
+							"name": "Create Tank",
+							"request": {
+								"method": "POST",
+								"url": "{{baseUrl}}/tanks",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": {
+										"name": "Test Tank",
+										"tank_id": "TANK001",
+										"description": "Test tank description",
+										"capacity": 1000,
+										"percentage": 0
+									}
+								}
+							}
+						},
+						{
+							"name": "Get Tank",
+							"request": {
+								"method": "GET",
+								"url": "{{baseUrl}}/tanks/{{tankId}}",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						},
+						{
+							"name": "Update Tank",
+							"request": {
+								"method": "PATCH",
+								"url": "{{baseUrl}}/tanks/{{tankId}}",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": {
+										"name": "Updated Tank",
+										"description": "Updated description"
+									}
+								}
+							}
+						},
+						{
+							"name": "Delete Tank",
+							"request": {
+								"method": "DELETE",
+								"url": "{{baseUrl}}/tanks/{{tankId}}",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Status & Monitoring",
+					"item": [
+						{
+							"name": "Update Status",
+							"request": {
+								"method": "PATCH",
+								"url": "{{baseUrl}}/tanks/{{tankId}}/status",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": {
+										"status": "active"
+									}
+								}
+							}
+						},
+						{
+							"name": "Update Percentage",
+							"request": {
+								"method": "PATCH",
+								"url": "{{baseUrl}}/tanks/{{tankId}}/percentage",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": {
+										"percentage": 75
+									}
+								}
+							}
+						},
+						{
+							"name": "Get Statistics",
+							"request": {
+								"method": "GET",
+								"url": "{{baseUrl}}/tanks/stats/overview",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Batch Operations",
+					"item": [
+						{
+							"name": "Update Multiple Tanks",
+							"request": {
+								"method": "PATCH",
+								"url": "{{baseUrl}}/tanks/batch/update",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": {
+										"tankIds": ["{{tankId1}}", "{{tankId2}}"],
+										"data": {
+											"status": "maintenance"
+										}
+									}
+								}
+							}
+						},
+						{
+							"name": "Delete Multiple Tanks",
+							"request": {
+								"method": "DELETE",
+								"url": "{{baseUrl}}/tanks/batch/delete",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": {
+										"tankIds": ["{{tankId1}}", "{{tankId2}}"]
+									}
+								}
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+} 

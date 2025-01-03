@@ -1,0 +1,61 @@
+{
+    "name": "Tank API - Production",
+    "values": [
+        {
+            "key": "baseUrl",
+            "value": "https://api.irissar.com",
+            "type": "string",
+            "description": "Production API base URL"
+        },
+        {
+            "key": "adminEmail",
+            "value": "admin@tank-api.test",
+            "type": "string"
+        },
+        {
+            "key": "adminPassword",
+            "value": "AdminTest@2024",
+            "type": "string"
+        },
+        {
+            "key": "adminEmail2",
+            "value": "admin@example.com",
+            "type": "string"
+        },
+        {
+            "key": "adminPassword2",
+            "value": "TestUser@2024",
+            "type": "string"
+        },
+        {
+            "key": "page",
+            "value": "1",
+            "type": "string",
+            "description": "Page number for pagination"
+        },
+        {
+            "key": "perPage",
+            "value": "20",
+            "type": "string",
+            "description": "Items per page"
+        },
+        {
+            "key": "sort",
+            "value": "-created",
+            "type": "string",
+            "description": "Sort field (prefix with - for descending)"
+        },
+        {
+            "key": "filter",
+            "value": "status = 'active'",
+            "type": "string",
+            "description": "Filter query example"
+        },
+        {
+            "key": "expand",
+            "value": "department,operator",
+            "type": "string",
+            "description": "Fields to expand in response"
+        }
+    ]
+} 
