@@ -118,7 +118,7 @@ async function testDepartmentMemberManagement() {
             { headers: { 'Authorization': `Bearer ${authToken}` } }
         );
 
-        // Update department access role
+        // Update department access position
         const accessToUpdate = await axios.get(
             `${PB_URL}/api/collections/department_user_access/records?filter=(user="${operatorToPromote.id}")`,
             { headers: { 'Authorization': `Bearer ${authToken}` } }
@@ -126,10 +126,10 @@ async function testDepartmentMemberManagement() {
 
         await axios.patch(
             `${PB_URL}/api/collections/department_user_access/records/${accessToUpdate.data.items[0].id}`,
-            { role: 'manager' },
+            { position: 'manager' },
             { headers: { 'Authorization': `Bearer ${authToken}` } }
         );
-        console.log('✅ Changed user role');
+        console.log('✅ Changed user position');
 
         // 7. Test: Remove user from department
         console.log('\n🔄 Testing: Removing user from department...');

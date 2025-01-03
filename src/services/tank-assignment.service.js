@@ -2,7 +2,7 @@ const BaseService = require('./base.service');
 
 class TankAssignmentService extends BaseService {
     constructor(auth) {
-        super(auth?.token || null);
+        super({ token: auth?.token, record: auth?.record });
         this.userId = auth?.record?.id;
     }
 
@@ -179,7 +179,7 @@ class TankAssignmentService extends BaseService {
                 throw new Error('User not authenticated');
             }
             const accessRecord = await this.pb.collection('department_user_access').getFirstListItem(
-                `user = "${this.userId}" && department = "${departmentId}" && role = "manager"`
+                `user = "${this.userId}" && department = "${departmentId}" && position = "manager"`
             );
             return true;
         } catch (error) {

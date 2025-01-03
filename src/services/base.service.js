@@ -1,13 +1,25 @@
 const PocketBase = require('pocketbase/cjs');
-const { PB_URL } = require('../../config');
 
 class BaseService {
-    constructor(authToken = null) {
-        this.pb = new PocketBase(PB_URL);
+    constructor({ token = null, record = null } = {}) {
+        console.log('BaseService constructor - received record:', record);
         
-        if (authToken) {
-            this.pb.authStore.save(authToken);
+        // Make sure URL has http:// prefix
+        let pbUrl = process.env.PB_URL || 'localhost:5050';
+        if (!pbUrl.startsWith('http://') && !pbUrl.startsWith('https://')) {
+            pbUrl = `http://${pbUrl}`;
         }
+        console.log('PocketBase URL:', pbUrl);
+        this.pb = new PocketBase(pbUrl);
+        
+        if (token) {
+            this.pb.authStore.save(token, record);
+        }
+        
+        // Use the actual user record without modifying the role
+        this.record = record || this.pb.authStore.model;
+        
+        console.log('BaseService constructor - final record:', this.record);
     }
 }
 

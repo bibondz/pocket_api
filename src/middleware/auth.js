@@ -25,8 +25,11 @@ const verifyToken = async (req, res, next) => {
         const pb = new PocketBase(PB_URL);
         pb.authStore.save(token, decoded);
         
+        // Store pb instance in request
+        req.pb = pb;
+        
         const user = await pb.collection('users').getOne(decoded.id);
-        req.user = user;
+        req.auth = { record: user };
         
         next();
     } catch (error) {

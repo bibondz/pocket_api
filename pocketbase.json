@@ -1,0 +1,219 @@
+[
+  {
+    "id": "lz2cplzgmyup5j3",
+    "name": "available_tanks",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "system": false,
+        "id": "854iofg9",
+        "name": "name",
+        "type": "text",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null,
+          "pattern": ""
+        }
+      },
+      {
+        "system": false,
+        "id": "ntorr9sj",
+        "name": "tank_id",
+        "type": "text",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null,
+          "pattern": ""
+        }
+      },
+      {
+        "system": false,
+        "id": "sp0j1vcb",
+        "name": "capacity",
+        "type": "number",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null,
+          "noDecimal": false
+        }
+      },
+      {
+        "system": false,
+        "id": "s7yakqoq",
+        "name": "status",
+        "type": "select",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "values": [
+            "active",
+            "inactive",
+            "maintenance",
+            "error"
+          ]
+        }
+      },
+      {
+        "system": false,
+        "id": "of3jw4nv",
+        "name": "installation_status",
+        "type": "select",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "maxSelect": 1,
+          "values": [
+            "installed",
+            "planned",
+            "installing",
+            "removed"
+          ]
+        }
+      },
+      {
+        "system": false,
+        "id": "96apzmvz",
+        "name": "last_signal_time",
+        "type": "date",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": "",
+          "max": ""
+        }
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_6PWWRjL` ON `available_tanks` (`tank_id`)",
+      "CREATE INDEX `idx_8FRQZzJ` ON `available_tanks` (`tank_id`, `status`)"
+    ],
+    "listRule": "@request.auth.role = \"maintenance\"",
+    "viewRule": "@request.auth.role = \"maintenance\"",
+    "createRule": "@request.auth.role = \"admin\"",
+    "updateRule": "@request.auth.role = \"maintenance\"",
+    "deleteRule": "@request.auth.role = \"admin\"",
+    "options": {}
+  },
+  {
+    "id": "f03wkfcuwwyrmux",
+    "name": "api_keys",
+    "type": "base",
+    "system": false,
+    "schema": [
+      {
+        "system": false,
+        "id": "xrjrckxc",
+        "name": "name",
+        "type": "text",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": 1,
+          "max": null,
+          "pattern": ""
+        }
+      },
+      {
+        "system": false,
+        "id": "nsdabecv",
+        "name": "key",
+        "type": "text",
+        "required": true,
+        "presentable": false,
+        "unique": true,
+        "options": {
+          "min": 64,
+          "max": 64,
+          "pattern": "^[a-zA-Z0-9]+$"
+        }
+      },
+      {
+        "system": false,
+        "id": "5gtmrsgc",
+        "name": "created_by",
+        "type": "text",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": null,
+          "max": null,
+          "pattern": ""
+        }
+      },
+      {
+        "system": false,
+        "id": "permissions",
+        "name": "permissions",
+        "type": "json",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {}
+      },
+      {
+        "system": false,
+        "id": "status",
+        "name": "status",
+        "type": "select",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "values": ["active", "revoked"]
+        }
+      },
+      {
+        "system": false,
+        "id": "last_used",
+        "name": "last_used",
+        "type": "date",
+        "required": true,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": "",
+          "max": ""
+        }
+      },
+      {
+        "system": false,
+        "id": "expires_at",
+        "name": "expires_at",
+        "type": "date",
+        "required": false,
+        "presentable": false,
+        "unique": false,
+        "options": {
+          "min": "",
+          "max": ""
+        }
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_pxJouBS` ON `api_keys` (`key`)",
+      "CREATE INDEX `idx_bh1KSua` ON `api_keys` (`expires_at`, `last_used`, `created_by`)"
+    ],
+    "listRule": null,
+    "viewRule": null,
+    "createRule": null,
+    "updateRule": null,
+    "deleteRule": null,
+    "options": {}
+  }
+]

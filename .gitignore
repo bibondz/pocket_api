@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# PocketBase
+pb_data/
+pb_migrations/
+pocketbase
+pocketbase.exe
+# PocketBase backups
+pb_data-*.tar.gz
+pb_data-*.zip
+pb_data-*.backup
+pb_data_backup/
+backups/
+
+# Redis
+dump.rdb
+*.rdb
+redis-data/
+redis_data/
+redis-backup/
+redis_backup/
+*.aof
+appendonly.aof
+redis-*.tar.gz
+redis-*.zip
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db 

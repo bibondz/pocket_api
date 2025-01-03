@@ -355,15 +355,15 @@
 - ✅ List Department Members - Successfully retrieved list of members in department
   - Shows member details (name, role, email)
   - Shows member's tank permissions
-  - Shows member's department role
-- ✅ Filter Members by Role - Successfully filtered members by role
+  - Shows member's department position
+- ✅ Filter Members by Position - Successfully filtered members by position
   - Can filter operators/managers separately
   - Shows filtered members with full details
   - Maintains proper data structure
 - ✅ Member Details Display - Successfully shows detailed member information
   - Complete user profile information
   - Current tank permissions
-  - Department role and access level
+  - Department position and access level
 
 ### Department Tank Inventory Features (2024-12-31)
 - ✅ Department Tank List - Successfully retrieved list of tanks in department
@@ -464,6 +464,7 @@
   - `name`: string - ชื่อผู้ใช้
   - `password`: string - รหัสผ่าน
   - `role`: string - บทบาท (admin/manager/operator)
+  - `status`: string - สถานะ (active/inactive)
   
 - Optional Fields:
   - `department`: string - ID แผนกที่สังกัด
@@ -578,7 +579,7 @@
    ```bash
    curl -X POST -H "Authorization: Bearer YOUR_TOKEN" -H "Content-Type: application/json" \
    -d '{"name":"Test API Key","department":"dept_id","expires":"2024-12-31T23:59:59Z"}' \
-   "https://api.irissar.com/app2/api-keys"
+   "https://api.irissar.com/api/collections/users/auth-with-password"
    ```
 
 2. การใช้ API Key:
@@ -949,7 +950,7 @@
 
 ### การแสดงผลแบบเป็นมิตร
 1. แสดงรหัสถังที่เข้าใจง่าย:
-   - แทนที่จะแสดง UUID ของถัง
+   - แทนที่จะแสดง UUID ข้วย
    - แสดงเป็นรหัสถังที่อ่านง่าย เช่น "TANK-PROD-001"
    - แสดงชื่อถังในวงเล็บ เช่น "TANK-PROD-001 (ถังผลิตภัณฑ์ 1)"
 
