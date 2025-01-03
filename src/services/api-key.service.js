@@ -1,114 +1,171 @@
-const PocketBase = require('pocketbase/cjs');
-const crypto = require('crypto');
 const BaseService = require('./base.service');
+const crypto = require('crypto');
 
 class ApiKeyService extends BaseService {
-    constructor({ token, record, pb }) {
-        super({ token });
-        this.record = record;
-        this.pb = pb || new PocketBase('https://api.irissar.com');
-        this.pb.authStore.save(token);
+    constructor({ token, record }) {
+        super();
+        this.token = token;
+        this.user = record;
     }
 
-    async createApiKey(data) {
-        const key = crypto.randomBytes(32).toString('hex');
-        const createData = {
-            name: data.name,
-            key: key,
-            created_by: data.record?.id || this.record.id,
-            permissions: data.permissions,
-            status: 'active',
-            last_used: new Date().toISOString(),
-            expires_at: data.expires_at || new Date(Date.now() + 365*24*60*60*1000).toISOString()
-        };
+    async generateKey(data) {
+        if (!data.name) {
+            throw new Error('Name is required');
+        }
+        if (!data.expires_at) {
+            throw new Error('Expiration date is required');
+        }
+        if (!data.permissions) {
+            throw new Error('Permissions are required (read/write)');
+        }
 
-        console.log('Creating API key with data:', createData);
-        try {
-            const apiKey = await this.pb.collection('api_keys').create(createData);
-            return {
-                id: apiKey.id,
-                name: apiKey.name,
-                key: key,
-                status: apiKey.status,
-                created: apiKey.created
-            };
-        } catch (error) {
-            console.error('Failed to create API key:', error);
-            if (error.response) {
-                console.error('Error response:', error.response);
+        // If manager, ensure they can only create keys for their department
+        if (this.user.role === 'manager') {
+            if (!this.user.department) {
+                throw new Error('Manager must be assigned to a department');
             }
-            throw new Error('Failed to create API key: ' + (error.message || 'Unknown error'));
-        }
-    }
-
-    async list(queryParams = {}) {
-        const page = parseInt(queryParams.page) || 1;
-        const perPage = parseInt(queryParams.perPage) || 10;
-        const filter = [];
-
-        if (this.record.role !== 'admin') {
-            filter.push(`created_by="${this.record.id}"`);
+            data.department = this.user.department;
         }
 
-        if (queryParams.search) {
-            filter.push(`name ~ "${queryParams.search}"`);
-        }
+        // Generate random API key
+        const apiKey = crypto.randomBytes(32).toString('hex');
 
-        if (queryParams.status) {
-            filter.push(`status = "${queryParams.status}"`);
-        }
-
-        const result = await this.pb.collection('api_keys').getList(page, perPage, {
-            filter: filter.join(' && '),
-            sort: queryParams.sort || '-created'
+        // Create API key record
+        const result = await this.pb.collection('api_keys').create({
+            ...data,
+            key: apiKey,
+            user: this.user.id,
+            status: 'active',
+            last_used: null
         });
 
         return {
-            items: result.items.map(item => ({
-                id: item.id,
-                name: item.name,
-                status: item.status,
-                created: item.created
-            })),
-            page: result.page,
-            perPage: result.perPage,
-            totalItems: result.totalItems,
-            totalPages: result.totalPages
+            success: true,
+            data: {
+                ...result,
+                key: apiKey // Include the API key in response
+            }
         };
     }
 
-    async getById(id) {
-        const apiKey = await this.pb.collection('api_keys').getOne(id);
+    async list(options = {}) {
+        let filter = '';
 
-        if (apiKey.created_by !== this.record.id && this.record.role !== 'admin') {
-            throw new Error('Not authorized to view this API key');
+        // If manager, only list keys from their department
+        if (this.user.role === 'manager') {
+            if (!this.user.department) {
+                throw new Error('Manager must be assigned to a department');
+            }
+            filter = `department = "${this.user.department}"`;
         }
 
-        if (this.record.role !== 'admin') {
-            return {
-                id: apiKey.id,
-                name: apiKey.name,
-                status: apiKey.status,
-                created: apiKey.created
-            };
+        // Add status filter if provided
+        if (options.status) {
+            filter += filter ? ` && status = "${options.status}"` : `status = "${options.status}"`;
         }
 
-        const { key, ...rest } = apiKey;
-        return rest;
+        const result = await this.pb.collection('api_keys').getList(
+            options.page || 1,
+            options.perPage || 20,
+            {
+                filter: filter,
+                sort: options.sort || '-created',
+                fields: 'id,name,key,expires_at,status,permissions,last_used,created'
+            }
+        );
+
+        return {
+            success: true,
+            data: result
+        };
     }
 
-    async revoke(id) {
-        const apiKey = await this.pb.collection('api_keys').getOne(id);
-
-        if (apiKey.created_by !== this.record.id && this.record.role !== 'admin') {
-            throw new Error('Not authorized to revoke this API key');
+    async delete(id) {
+        // If manager, verify the key belongs to their department
+        if (this.user.role === 'manager') {
+            const key = await this.getById(id);
+            if (!key.data || key.data.department !== this.user.department) {
+                throw new Error('You can only delete API keys from your department');
+            }
         }
 
         await this.pb.collection('api_keys').delete(id);
+
         return {
             success: true,
             message: 'API key deleted successfully'
         };
+    }
+
+    async update(id, data) {
+        // If manager, verify the key belongs to their department
+        if (this.user.role === 'manager') {
+            const key = await this.getById(id);
+            if (!key.data || key.data.department !== this.user.department) {
+                throw new Error('You can only update API keys from your department');
+            }
+            // Prevent changing department
+            delete data.department;
+        }
+
+        // Cannot update the key itself
+        delete data.key;
+
+        const result = await this.pb.collection('api_keys').update(id, data);
+
+        return {
+            success: true,
+            data: result
+        };
+    }
+
+    async getById(id) {
+        const result = await this.pb.collection('api_keys').getOne(id, {
+            fields: 'id,name,key,expires_at,status,permissions,department,last_used,created'
+        });
+        return {
+            success: true,
+            data: result
+        };
+    }
+
+    // Method to validate API key permissions
+    async validateApiKey(key, requiredPermission) {
+        try {
+            const apiKey = await this.pb.collection('api_keys').getFirstListItem(`key = "${key}"`);
+            
+            if (!apiKey) {
+                throw new Error('Invalid API key');
+            }
+
+            if (apiKey.status !== 'active') {
+                throw new Error('API key is not active');
+            }
+
+            const expiresAt = new Date(apiKey.expires_at);
+            if (expiresAt < new Date()) {
+                // Auto revoke expired key
+                await this.pb.collection('api_keys').update(apiKey.id, { status: 'revoked' });
+                throw new Error('API key has expired');
+            }
+
+            // Check if key has required permission
+            if (!apiKey.permissions.includes(requiredPermission)) {
+                throw new Error(`API key does not have ${requiredPermission} permission`);
+            }
+
+            // Update last used timestamp
+            await this.pb.collection('api_keys').update(apiKey.id, {
+                last_used: new Date().toISOString()
+            });
+
+            return {
+                success: true,
+                data: apiKey
+            };
+        } catch (error) {
+            throw new Error(`API key validation failed: ${error.message}`);
+        }
     }
 }
 

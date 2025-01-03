@@ -7,7 +7,7 @@ const { authMiddleware } = require('./middlewares/auth.middleware');
 // Import routes
 const authRoutes = require('./routes/auth.routes');
 const tankRoutes = require('./routes/tank.routes');
-const apiKeyRoutes = require('./routes/api-keys.routes');
+const apiKeyRoutes = require('./routes/api-key.routes');
 const userRoutes = require('./routes/user.routes');
 const departmentRoutes = require('./routes/department.routes');
 

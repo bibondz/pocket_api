@@ -12,8 +12,8 @@ const crypto = require('crypto');
 // สร้าง Redis connection สำหรับ primary และ replica
 const redisPrimary = new Redis({
     host: process.env.REDIS_HOST || 'localhost',
-    port: process.env.REDIS_PORT || 6379,
-    password: process.env.REDIS_PASSWORD,
+    port: parseInt(process.env.REDIS_PORT) || 5051,
+    password: process.env.REDIS_PASSWORD || 'AhYa7Y890',
     retryStrategy: function(times) {
         const delay = Math.min(times * 50, 2000);
         return delay;
@@ -22,8 +22,8 @@ const redisPrimary = new Redis({
 
 const redisReplica = new Redis({
     host: process.env.REDIS_REPLICA_HOST || process.env.REDIS_HOST || 'localhost',
-    port: process.env.REDIS_REPLICA_PORT || process.env.REDIS_PORT || 6379,
-    password: process.env.REDIS_REPLICA_PASSWORD || process.env.REDIS_PASSWORD,
+    port: parseInt(process.env.REDIS_REPLICA_PORT) || parseInt(process.env.REDIS_PORT) || 5051,
+    password: process.env.REDIS_REPLICA_PASSWORD || process.env.REDIS_PASSWORD || 'AhYa7Y890',
     retryStrategy: function(times) {
         const delay = Math.min(times * 50, 2000);
         return delay;

@@ -8,6 +8,26 @@ const router = express.Router();
 // Apply auth middleware to all routes
 router.use(authMiddleware);
 
+// List tanks (filtered by user permissions)
+router.get('/tanks', async (req, res) => {
+    try {
+        const departmentService = new DepartmentService({
+            token: req.pb.authStore.token,
+            record: req.user
+        });
+        
+        // If department is specified in query params, use that
+        const departmentFilter = req.query.department;
+        const result = await departmentService.listDepartmentTanks(departmentFilter);
+        res.json(result);
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
 // List departments
 router.get('/', async (req, res) => {
     try {
@@ -244,6 +264,13 @@ router.delete('/:id/members/:userId', async (req, res) => {
 // List department tanks
 router.get('/:id/tanks', async (req, res) => {
     try {
+        if (!req.params.id) {
+            return res.status(400).json({
+                success: false,
+                message: 'Department ID is required'
+            });
+        }
+
         const departmentService = new DepartmentService({
             token: req.pb.authStore.token,
             record: req.user

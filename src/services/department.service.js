@@ -85,10 +85,26 @@ class DepartmentService extends BaseService {
 
     async getDepartment(departmentId) {
         try {
-            const department = await this.pb.collection('departments').getOne(departmentId);
+            const department = await this.pb.collection('departments').getOne(departmentId, {
+                expand: 'tanks'
+            });
+
+            // Get tanks linked to this department
+            const tanks = await this.pb.collection('tanks').getList(1, 50, {
+                filter: `department = "${departmentId}"`,
+            });
+
             return {
                 success: true,
-                data: department
+                data: {
+                    ...department,
+                    tanks: tanks.items.map(tank => ({
+                        id: tank.id,
+                        name: tank.name,
+                        description: tank.description,
+                        status: tank.status
+                    }))
+                }
             };
         } catch (error) {
             console.error('Get department failed:', error);
@@ -152,27 +168,83 @@ class DepartmentService extends BaseService {
                 department = await this.pb.collection('departments').getOne(departmentIdOrName);
             }
 
-            const result = await this.pb.collection('department_user_access').getList(1, 50, {
-                filter: `department = "${department.id}"`,
-                expand: 'user,department'
-            });
+            // Check user permissions
+            if (!this.record) {
+                throw new Error('Authentication required');
+            }
 
-            const members = result.items.map(access => ({
-                id: access.expand?.user?.id,
-                email: access.expand?.user?.email,
-                name: access.expand?.user?.name,
-                position: access.position,
-                department: access.expand?.department?.name,
-                created: access.created
-            }));
+            // Admin can see all members
+            if (this.isAdmin) {
+                const users = await this.pb.collection('users').getList(1, 50, {
+                    filter: `department.id = "${department.id}"`,
+                    expand: 'department'
+                });
 
-            return {
-                success: true,
-                data: {
-                    items: members,
-                    totalItems: result.totalItems
+                return {
+                    success: true,
+                    data: {
+                        items: users.items.map(user => ({
+                            id: user.id,
+                            email: user.email,
+                            name: user.name,
+                            role: user.role,
+                            department: user.expand?.department?.name || department.name,
+                            created: user.created
+                        })),
+                        totalItems: users.totalItems
+                    }
+                };
+            }
+            // Manager can only see members of their own department
+            else if (this.isManager) {
+                const userDepartment = await this.pb.collection('users').getOne(this.record.id, {
+                    expand: 'department'
+                });
+                if (!userDepartment.department || userDepartment.department.id !== department.id) {
+                    throw new Error('You can only view members of your own department');
                 }
-            };
+
+                const users = await this.pb.collection('users').getList(1, 50, {
+                    filter: `department.id = "${department.id}"`,
+                    expand: 'department'
+                });
+
+                return {
+                    success: true,
+                    data: {
+                        items: users.items.map(user => ({
+                            id: user.id,
+                            email: user.email,
+                            name: user.name,
+                            role: user.role,
+                            department: user.expand?.department?.name || department.name,
+                            created: user.created
+                        })),
+                        totalItems: users.totalItems
+                    }
+                };
+            }
+            // Operator can only see themselves
+            else {
+                const users = await this.pb.collection('users').getList(1, 50, {
+                    filter: `id = "${this.record.id}"`,
+                    expand: 'department'
+                });
+                return {
+                    success: true,
+                    data: {
+                        items: users.items.map(user => ({
+                            id: user.id,
+                            email: user.email,
+                            name: user.name,
+                            role: user.role,
+                            department: user.expand?.department?.name || department.name,
+                            created: user.created
+                        })),
+                        totalItems: users.totalItems
+                    }
+                };
+            }
         } catch (error) {
             console.error('List department members failed:', error);
             return {
@@ -318,15 +390,70 @@ class DepartmentService extends BaseService {
 
     async listDepartmentTanks(departmentIdOrName) {
         try {
+            // Check user permissions
+            if (!this.record) {
+                throw new Error('Authentication required');
+            }
+
+            // Admin can see all tanks
+            if (this.isAdmin) {
+                const tanks = await this.pb.collection('tanks').getList(1, 50, {
+                    expand: 'department'
+                });
+
+                return {
+                    success: true,
+                    data: {
+                        items: tanks.items.map(tank => ({
+                            id: tank.id,
+                            name: tank.name,
+                            description: tank.description,
+                            status: tank.status,
+                            department: tank.expand?.department?.name || 'none'
+                        })),
+                        totalItems: tanks.totalItems
+                    }
+                };
+            }
+
+            // For non-admin users, department is required
+            if (!departmentIdOrName) {
+                throw new Error('Department ID or name is required');
+            }
+
             // Get department by name or id
             let department;
             try {
                 department = await this.pb.collection('departments').getFirstListItem(`name = "${departmentIdOrName}"`);
             } catch (error) {
-                department = await this.pb.collection('departments').getOne(departmentIdOrName);
+                try {
+                    department = await this.pb.collection('departments').getOne(departmentIdOrName);
+                } catch (error) {
+                    throw new Error(`Department not found: ${departmentIdOrName}`);
+                }
             }
 
-            const result = await this.pb.collection('tanks').getList(1, 50, {
+            // Manager can only see tanks of their own department
+            if (this.isManager) {
+                const userDepartment = await this.pb.collection('users').getOne(this.record.id, {
+                    expand: 'department'
+                });
+                if (!userDepartment.department || userDepartment.department.id !== department.id) {
+                    throw new Error('You can only view tanks of your own department');
+                }
+            }
+            // Operator can only see tanks of their own department
+            else {
+                const userDepartment = await this.pb.collection('users').getOne(this.record.id, {
+                    expand: 'department'
+                });
+                if (!userDepartment.department || userDepartment.department.id !== department.id) {
+                    throw new Error('You can only view tanks of your own department');
+                }
+            }
+
+            // Get tanks linked to this department
+            const tanks = await this.pb.collection('tanks').getList(1, 50, {
                 filter: `department = "${department.id}"`,
                 expand: 'department'
             });
@@ -334,11 +461,14 @@ class DepartmentService extends BaseService {
             return {
                 success: true,
                 data: {
-                    ...result,
-                    items: result.items.map(tank => ({
-                        ...tank,
-                        department: tank.expand?.department?.name
-                    }))
+                    items: tanks.items.map(tank => ({
+                        id: tank.id,
+                        name: tank.name,
+                        description: tank.description,
+                        status: tank.status,
+                        department: department.name
+                    })),
+                    totalItems: tanks.totalItems
                 }
             };
         } catch (error) {
