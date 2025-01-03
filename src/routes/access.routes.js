@@ -1,158 +1,76 @@
 const express = require('express');
 const router = express.Router();
-const AccessService = require('../services/access.service');
+const AccessControlService = require('../services/access-control.service');
 const { authMiddleware } = require('../middleware/auth.middleware');
+const { pbMiddleware } = require('../middleware/pb.middleware');
 
-// Create tank group
-router.post('/groups', authMiddleware, async (req, res) => {
+// Middleware ตรวจสอบ admin
+const adminOnly = (req, res, next) => {
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({
+            status: 'error',
+            message: 'Only admin can access this endpoint'
+        });
+    }
+    next();
+};
+
+// ดึงข้อมูลการเข้าถึงแผนกของ user
+router.get('/department-access/:userId', pbMiddleware, authMiddleware, async (req, res) => {
     try {
-        const { departmentId, name, permissions, tanks } = req.body;
-        if (!departmentId || !name || !permissions) {
-            return res.status(400).json({
-                success: false,
-                message: 'Missing required fields'
-            });
-        }
-
-        const accessService = new AccessService({ token: req.token });
-        const result = await accessService.createTankGroup(departmentId, {
-            name,
-            permissions,
-            tanks
+        const accessControl = new AccessControlService({
+            token: req.pb.authStore.token,
+            record: req.user
         });
 
-        if (!result.success) {
-            return res.status(400).json(result);
+        // ตรวจสอบสิทธิ์
+        if (req.user.role !== 'admin' && req.user.id !== req.params.userId) {
+            throw new Error('You can only view your own access');
         }
 
+        const result = await accessControl.getUserDepartmentAccess(req.params.userId);
         res.json(result);
     } catch (error) {
-        console.error('Failed to create tank group:', error);
-        res.status(500).json({
-            success: false,
+        res.status(400).json({
+            status: 'error',
             message: error.message
         });
     }
 });
 
-// Check tank access
-router.get('/check', authMiddleware, async (req, res) => {
+// เพิ่มสิทธิ์การเข้าถึงแผนก (admin only)
+router.post('/department-access', pbMiddleware, authMiddleware, adminOnly, async (req, res) => {
     try {
-        const { userId, tankId } = req.query;
-        if (!userId || !tankId) {
-            return res.status(400).json({
-                success: false,
-                message: 'Missing required fields'
-            });
-        }
+        const { userId, departmentId, accessType } = req.body;
+        
+        const accessControl = new AccessControlService({
+            token: req.pb.authStore.token,
+            record: req.user
+        });
 
-        const accessService = new AccessService({ token: req.token });
-        const result = await accessService.checkUserTankAccess(userId, tankId);
-
-        if (!result.success) {
-            return res.status(403).json(result);
-        }
-
+        const result = await accessControl.addDepartmentAccess(userId, departmentId, accessType);
         res.json(result);
     } catch (error) {
-        console.error('Failed to check tank access:', error);
-        res.status(500).json({
-            success: false,
+        res.status(400).json({
+            status: 'error',
             message: error.message
         });
     }
 });
 
-// Bulk assign tanks to group
-router.post('/groups/assign', authMiddleware, async (req, res) => {
+// ลบสิทธิ์การเข้าถึงแผนก (admin only)
+router.delete('/department-access/:accessId', pbMiddleware, authMiddleware, adminOnly, async (req, res) => {
     try {
-        const { departmentId, groupName, tankIds } = req.body;
-        if (!departmentId || !groupName || !tankIds) {
-            return res.status(400).json({
-                success: false,
-                message: 'Missing required fields'
-            });
-        }
-
-        const accessService = new AccessService({ token: req.token });
-        const result = await accessService.bulkAssignTanksToGroup(
-            departmentId,
-            groupName,
-            tankIds
-        );
-
-        if (!result.success) {
-            return res.status(400).json(result);
-        }
-
-        res.json(result);
-    } catch (error) {
-        console.error('Failed to assign tanks to group:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
+        const accessControl = new AccessControlService({
+            token: req.pb.authStore.token,
+            record: req.user
         });
-    }
-});
 
-// Set default permissions
-router.post('/default', authMiddleware, async (req, res) => {
-    try {
-        const { departmentId, permissions } = req.body;
-        if (!departmentId || !permissions) {
-            return res.status(400).json({
-                success: false,
-                message: 'Missing required fields'
-            });
-        }
-
-        const accessService = new AccessService({ token: req.token });
-        const result = await accessService.setDefaultPermissions(
-            departmentId,
-            permissions
-        );
-
-        if (!result.success) {
-            return res.status(400).json(result);
-        }
-
+        const result = await accessControl.removeDepartmentAccess(req.params.accessId);
         res.json(result);
     } catch (error) {
-        console.error('Failed to set default permissions:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-});
-
-// Add tank exception
-router.post('/exceptions', authMiddleware, async (req, res) => {
-    try {
-        const { departmentId, tankId, permissions } = req.body;
-        if (!departmentId || !tankId || !permissions) {
-            return res.status(400).json({
-                success: false,
-                message: 'Missing required fields'
-            });
-        }
-
-        const accessService = new AccessService({ token: req.token });
-        const result = await accessService.addTankException(
-            departmentId,
-            tankId,
-            permissions
-        );
-
-        if (!result.success) {
-            return res.status(400).json(result);
-        }
-
-        res.json(result);
-    } catch (error) {
-        console.error('Failed to add tank exception:', error);
-        res.status(500).json({
-            success: false,
+        res.status(400).json({
+            status: 'error',
             message: error.message
         });
     }

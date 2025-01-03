@@ -2,36 +2,45 @@ const PocketBase = require('pocketbase/cjs');
 
 class BaseService {
     constructor({ token = null, record = null } = {}) {
-        console.log('BaseService constructor - received record:', record);
-        
-        // Make sure URL has http:// prefix
+        // Setup PocketBase connection
         let pbUrl = process.env.PB_URL || 'localhost:5050';
         if (!pbUrl.startsWith('http://') && !pbUrl.startsWith('https://')) {
             pbUrl = `http://${pbUrl}`;
         }
-        console.log('PocketBase URL:', pbUrl);
+        
         this.pb = new PocketBase(pbUrl);
         
+        // Setup authentication
         if (token) {
             this.pb.authStore.save(token, record);
         }
         
-        // Use the actual user record without modifying the role
+        // Store user info
         this.record = record || this.pb.authStore.model;
-        
-        console.log('BaseService constructor - final record:', this.record);
+        this.role = this.record?.role || 'none';
+        this.department = this.record?.department;
     }
 
+    // Role checks
     get isAdmin() {
-        return this.record?.role === 'admin';
+        return this.role === 'admin';
     }
 
     get isManager() {
-        return this.record?.role === 'manager';
+        return this.role === 'manager';
     }
 
     get isOperator() {
-        return this.record?.role === 'operator';
+        return this.role === 'operator';
+    }
+
+    // Basic permission checks
+    isSelf(userId) {
+        return this.record?.id === userId;
+    }
+
+    canEdit(userId) {
+        return this.isAdmin || this.isSelf(userId);
     }
 }
 

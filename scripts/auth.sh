@@ -7,7 +7,8 @@ CREDENTIALS_FILE=".env.node"
 
 # Load credentials from .env.node
 if [ -f "$CREDENTIALS_FILE" ]; then
-    export $(cat "$CREDENTIALS_FILE" | grep -v '^#' | xargs)
+    # Only export lines that are valid environment variable declarations
+    export $(grep -E '^[A-Z_]+=' "$CREDENTIALS_FILE" | xargs)
 fi
 
 # Function to get new token
@@ -20,12 +21,16 @@ get_new_token() {
     
     case "$role" in
         "manager")
-            email="${TEST_EMAIL_2}"
-            password="${TEST_PASSWORD_2}"
+            email="tank.manager@irissar.com"
+            password="Manager@123"
             ;;
         "operator")
-            email="${TEST_EMAIL_3}"
-            password="${TEST_PASSWORD_3}"
+            email="tank.operator@irissar.com"
+            password="Operator@123"
+            ;;
+        "admin")
+            email="supervisor.admin@irissar.com"
+            password="Supervisor@123"
             ;;
     esac
     

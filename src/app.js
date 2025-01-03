@@ -10,6 +10,8 @@ const tankRoutes = require('./routes/tank.routes');
 const apiKeyRoutes = require('./routes/api-key.routes');
 const userRoutes = require('./routes/user.routes');
 const departmentRoutes = require('./routes/department.routes');
+const accessRoutes = require('./routes/access.routes');
+const tankAccessRoutes = require('./routes/tank-access.routes');
 
 const app = express();
 
@@ -25,6 +27,8 @@ app.use('/app2/tanks', pbMiddleware, tankRoutes);
 app.use('/app2/api-keys', pbMiddleware, apiKeyRoutes);
 app.use('/app2/users', pbMiddleware, userRoutes);
 app.use('/app2/departments', pbMiddleware, departmentRoutes);
+app.use('/app2/access', pbMiddleware, accessRoutes);
+app.use('/app2/tank-access', pbMiddleware, tankAccessRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {
