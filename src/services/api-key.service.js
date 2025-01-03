@@ -2,169 +2,149 @@ const BaseService = require('./base.service');
 const crypto = require('crypto');
 
 class ApiKeyService extends BaseService {
-    constructor({ token, record }) {
-        super();
-        this.token = token;
-        this.user = record;
-    }
-
     async generateKey(data) {
-        if (!data.name) {
-            throw new Error('Name is required');
-        }
-        if (!data.expires_at) {
-            throw new Error('Expiration date is required');
-        }
-        if (!data.permissions) {
-            throw new Error('Permissions are required (read/write)');
-        }
-
-        // If manager, ensure they can only create keys for their department
-        if (this.user.role === 'manager') {
-            if (!this.user.department) {
-                throw new Error('Manager must be assigned to a department');
-            }
-            data.department = this.user.department;
-        }
-
-        // Generate random API key
-        const apiKey = crypto.randomBytes(32).toString('hex');
-
-        // Create API key record
-        const result = await this.pb.collection('api_keys').create({
-            ...data,
-            key: apiKey,
-            user: this.user.id,
-            status: 'active',
-            last_used: null
-        });
-
-        return {
-            success: true,
-            data: {
-                ...result,
-                key: apiKey // Include the API key in response
-            }
-        };
-    }
-
-    async list(options = {}) {
-        let filter = '';
-
-        // If manager, only list keys from their department
-        if (this.user.role === 'manager') {
-            if (!this.user.department) {
-                throw new Error('Manager must be assigned to a department');
-            }
-            filter = `department = "${this.user.department}"`;
-        }
-
-        // Add status filter if provided
-        if (options.status) {
-            filter += filter ? ` && status = "${options.status}"` : `status = "${options.status}"`;
-        }
-
-        const result = await this.pb.collection('api_keys').getList(
-            options.page || 1,
-            options.perPage || 20,
-            {
-                filter: filter,
-                sort: options.sort || '-created',
-                fields: 'id,name,key,expires_at,status,permissions,last_used,created'
-            }
-        );
-
-        return {
-            success: true,
-            data: result
-        };
-    }
-
-    async delete(id) {
-        // If manager, verify the key belongs to their department
-        if (this.user.role === 'manager') {
-            const key = await this.getById(id);
-            if (!key.data || key.data.department !== this.user.department) {
-                throw new Error('You can only delete API keys from your department');
-            }
-        }
-
-        await this.pb.collection('api_keys').delete(id);
-
-        return {
-            success: true,
-            message: 'API key deleted successfully'
-        };
-    }
-
-    async update(id, data) {
-        // If manager, verify the key belongs to their department
-        if (this.user.role === 'manager') {
-            const key = await this.getById(id);
-            if (!key.data || key.data.department !== this.user.department) {
-                throw new Error('You can only update API keys from your department');
-            }
-            // Prevent changing department
-            delete data.department;
-        }
-
-        // Cannot update the key itself
-        delete data.key;
-
-        const result = await this.pb.collection('api_keys').update(id, data);
-
-        return {
-            success: true,
-            data: result
-        };
-    }
-
-    async getById(id) {
-        const result = await this.pb.collection('api_keys').getOne(id, {
-            fields: 'id,name,key,expires_at,status,permissions,department,last_used,created'
-        });
-        return {
-            success: true,
-            data: result
-        };
-    }
-
-    // Method to validate API key permissions
-    async validateApiKey(key, requiredPermission) {
         try {
-            const apiKey = await this.pb.collection('api_keys').getFirstListItem(`key = "${key}"`);
+            if (!this.record) {
+                throw new Error('Authentication required');
+            }
+
+            // Validate required fields
+            if (!data.name) {
+                throw new Error('Name is required');
+            }
+            if (!data.expires_at) {
+                throw new Error('Expiration date is required');
+            }
+            if (!data.permissions) {
+                throw new Error('Permissions are required');
+            }
+
+            // Generate random key
+            const apiKey = crypto.randomBytes(32).toString('hex');
+
+            // Create API key record
+            const keyData = {
+                name: data.name,
+                key: apiKey,
+                expires_at: data.expires_at,
+                permissions: data.permissions,
+                status: 'active',
+                created_by: this.record.id,
+                last_used: null
+            };
+
+            const record = await this.pb.collection('api_keys').create(keyData);
+
+            return {
+                success: true,
+                data: {
+                    ...record,
+                    key: apiKey // Include plain key only in response
+                }
+            };
+        } catch (error) {
+            console.error('Generate API key error:', error);
+            throw error;
+        }
+    }
+
+    async list(query = {}) {
+        try {
+            let filter = 'created >= "2000-01-01 00:00:00"';
             
-            if (!apiKey) {
-                throw new Error('Invalid API key');
+            if (query.status) {
+                filter += ` && status = "${query.status}"`;
+            }
+            if (query.search) {
+                filter += ` && name ~ "${query.search}"`;
             }
 
-            if (apiKey.status !== 'active') {
-                throw new Error('API key is not active');
-            }
-
-            const expiresAt = new Date(apiKey.expires_at);
-            if (expiresAt < new Date()) {
-                // Auto revoke expired key
-                await this.pb.collection('api_keys').update(apiKey.id, { status: 'revoked' });
-                throw new Error('API key has expired');
-            }
-
-            // Check if key has required permission
-            if (!apiKey.permissions.includes(requiredPermission)) {
-                throw new Error(`API key does not have ${requiredPermission} permission`);
-            }
-
-            // Update last used timestamp
-            await this.pb.collection('api_keys').update(apiKey.id, {
-                last_used: new Date().toISOString()
+            const records = await this.pb.collection('api_keys').getList(1, 50, {
+                filter,
+                sort: '-created',
+                fields: 'id,name,key,expires_at,status,last_used'
             });
 
             return {
                 success: true,
-                data: apiKey
+                data: records
             };
         } catch (error) {
-            throw new Error(`API key validation failed: ${error.message}`);
+            console.error('List API keys error:', error);
+            throw error;
+        }
+    }
+
+    async delete(id) {
+        try {
+            if (!this.record) {
+                throw new Error('Authentication required');
+            }
+
+            await this.pb.collection('api_keys').delete(id);
+            return {
+                success: true,
+                message: 'API key deleted successfully'
+            };
+        } catch (error) {
+            console.error('Delete API key error:', error);
+            throw error;
+        }
+    }
+
+    async update(id, data) {
+        try {
+            if (!this.record) {
+                throw new Error('Authentication required');
+            }
+
+            // ไม่อนุญาตให้แก้ไข key
+            delete data.key;
+
+            const record = await this.pb.collection('api_keys').update(id, data);
+            return {
+                success: true,
+                data: record
+            };
+        } catch (error) {
+            console.error('Update API key error:', error);
+            throw error;
+        }
+    }
+
+    async checkExpiringKeys() {
+        try {
+            const now = new Date();
+            
+            const activeKeys = await this.pb.collection('api_keys').getFullList({
+                filter: `status = "active"`
+            });
+
+            for (const key of activeKeys) {
+                const expiresAt = new Date(key.expires_at);
+                const timeLeft = expiresAt - now;
+                const hoursLeft = timeLeft / (1000 * 60 * 60);
+
+                if (timeLeft <= 0) {
+                    await this.pb.collection('api_keys').update(key.id, {
+                        status: 'revoked'
+                    });
+                    continue;
+                }
+
+                if (hoursLeft <= 24) {
+                    const nextCheckInterval = Math.floor(hoursLeft / 3);
+                    console.log(`Key ${key.name} expires in ${hoursLeft.toFixed(1)} hours. Will check again in ${nextCheckInterval} hours`);
+                }
+            }
+
+            return {
+                success: true,
+                message: `Checked ${activeKeys.length} active keys`
+            };
+        } catch (error) {
+            console.error('Check expiring keys error:', error);
+            throw error;
         }
     }
 }

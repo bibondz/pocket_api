@@ -175,25 +175,7 @@ class DepartmentService extends BaseService {
 
             // Admin can see all members
             if (this.isAdmin) {
-                const users = await this.pb.collection('users').getList(1, 50, {
-                    filter: `department.id = "${department.id}"`,
-                    expand: 'department'
-                });
-
-                return {
-                    success: true,
-                    data: {
-                        items: users.items.map(user => ({
-                            id: user.id,
-                            email: user.email,
-                            name: user.name,
-                            role: user.role,
-                            department: user.expand?.department?.name || department.name,
-                            created: user.created
-                        })),
-                        totalItems: users.totalItems
-                    }
-                };
+                // Allow access to all members
             }
             // Manager can only see members of their own department
             else if (this.isManager) {
@@ -203,26 +185,6 @@ class DepartmentService extends BaseService {
                 if (!userDepartment.department || userDepartment.department.id !== department.id) {
                     throw new Error('You can only view members of your own department');
                 }
-
-                const users = await this.pb.collection('users').getList(1, 50, {
-                    filter: `department.id = "${department.id}"`,
-                    expand: 'department'
-                });
-
-                return {
-                    success: true,
-                    data: {
-                        items: users.items.map(user => ({
-                            id: user.id,
-                            email: user.email,
-                            name: user.name,
-                            role: user.role,
-                            department: user.expand?.department?.name || department.name,
-                            created: user.created
-                        })),
-                        totalItems: users.totalItems
-                    }
-                };
             }
             // Operator can only see themselves
             else {
@@ -245,6 +207,29 @@ class DepartmentService extends BaseService {
                     }
                 };
             }
+
+            // Get users that have this department (for admin and manager)
+            const users = await this.pb.collection('users').getList(1, 50, {
+                filter: `department.id = "${department.id}"`,
+                expand: 'department'
+            });
+
+            const members = users.items.map(user => ({
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+                department: user.expand?.department?.name || department.name,
+                created: user.created
+            }));
+
+            return {
+                success: true,
+                data: {
+                    items: members,
+                    totalItems: users.totalItems
+                }
+            };
         } catch (error) {
             console.error('List department members failed:', error);
             return {
@@ -390,13 +375,8 @@ class DepartmentService extends BaseService {
 
     async listDepartmentTanks(departmentIdOrName) {
         try {
-            // Check user permissions
-            if (!this.record) {
-                throw new Error('Authentication required');
-            }
-
-            // Admin can see all tanks
-            if (this.isAdmin) {
+            // Admin can see all tanks if no department specified
+            if (this.isAdmin && !departmentIdOrName) {
                 const tanks = await this.pb.collection('tanks').getList(1, 50, {
                     expand: 'department'
                 });
@@ -416,7 +396,7 @@ class DepartmentService extends BaseService {
                 };
             }
 
-            // For non-admin users, department is required
+            // For specific department requests
             if (!departmentIdOrName) {
                 throw new Error('Department ID or name is required');
             }
@@ -433,8 +413,17 @@ class DepartmentService extends BaseService {
                 }
             }
 
+            // Check user permissions
+            if (!this.record) {
+                throw new Error('Authentication required');
+            }
+
+            // Admin can see all tanks
+            if (this.isAdmin) {
+                // Allow access to all tanks
+            }
             // Manager can only see tanks of their own department
-            if (this.isManager) {
+            else if (this.isManager) {
                 const userDepartment = await this.pb.collection('users').getOne(this.record.id, {
                     expand: 'department'
                 });

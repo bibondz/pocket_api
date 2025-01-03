@@ -131,24 +131,9 @@ router.get('/', checkRole(['admin', 'manager']), async (req, res) => {
             sort: req.query.sort || '-created'
         });
         
-        if (!result.success) {
-            throw new Error(result.message);
-        }
-
-        // Format response for DataTables
         res.json({
-            draw: parseInt(req.query.draw) || 1,
-            recordsTotal: result.data.totalItems,
-            recordsFiltered: result.data.totalItems,
-            data: result.data.items.map(user => ({
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                department: user.expand?.department?.name || '-',
-                status: user.status,
-                created: user.created
-            }))
+            status: 'success',
+            data: result
         });
     } catch (error) {
         console.error('List users error:', error);
