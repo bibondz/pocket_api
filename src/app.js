@@ -12,6 +12,7 @@ const userRoutes = require('./routes/user.routes');
 const departmentRoutes = require('./routes/department.routes');
 const accessRoutes = require('./routes/access.routes');
 const tankAccessRoutes = require('./routes/tank-access.routes');
+const departmentAccessRoutes = require('./routes/department-access.routes');
 
 const app = express();
 
@@ -29,6 +30,8 @@ app.use('/app2/users', pbMiddleware, userRoutes);
 app.use('/app2/departments', pbMiddleware, departmentRoutes);
 app.use('/app2/access', pbMiddleware, accessRoutes);
 app.use('/app2/tank-access', pbMiddleware, tankAccessRoutes);
+app.use('/app2', departmentAccessRoutes);
+app.use('/app2', tankRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {
